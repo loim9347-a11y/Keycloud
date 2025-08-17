@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Key - Sáng Tạo Vô Hạn</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-blue: #0ff;
+            --neon-pink: #ff0077;
+            --dark-bg: #0d0d1a;
+            --card-bg: rgba(13, 13, 26, 0.8);
+        }
+
+        body {
+            background: var(--dark-bg);
+            color: var(--neon-blue);
+            font-family: 'Orbitron', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            position: relative;
+            background-image: radial-gradient(circle, #1a0a2a, var(--dark-bg));
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
+            opacity: 0.1;
+            pointer-events: none;
+        }
+
+        .container {
+            text-align: center;
+            padding: 40px;
+            background: var(--card-bg);
+            border: 2px solid var(--neon-blue);
+            border-radius: 20px;
+            box-shadow: 0 0 40px var(--neon-blue), 0 0 80px var(--neon-blue);
+            position: relative;
+            z-index: 10;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            animation: glow-border 5s infinite alternate;
+        }
+
+        @keyframes glow-border {
+            from { box-shadow: 0 0 20px var(--neon-blue), inset 0 0 10px var(--neon-blue); }
+            to { box-shadow: 0 0 40px var(--neon-blue), inset 0 0 20px var(--neon-blue); }
+        }
+
+        .title {
+            font-size: 2.5em;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px var(--neon-blue);
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+            animation: flicker 2s infinite alternate;
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .key-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 150px;
+        }
+
+        .key-section {
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+            position: absolute;
+            width: 100%;
+        }
+
+        .key-section.hidden {
+            opacity: 0;
+            transform: translateY(20px);
+            pointer-events: none;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 15px var(--neon-blue);
+        }
+
+        .get-key-btn {
+            background: var(--neon-pink);
+            box-shadow: 0 0 20px var(--neon-pink);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 10px var(--neon-pink); }
+            50% { transform: scale(1.05); box-shadow: 0 0 20px var(--neon-pink); }
+            100% { transform: scale(1); box-shadow: 0 0 10px var(--neon-pink); }
+        }
+
+        .verify-btn {
+            background: var(--neon-blue);
+            box-shadow: 0 0 20px var(--neon-blue);
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px var(--neon-blue);
+        }
+
+        #key-input {
+            width: 100%;
+            max-width: 300px;
+            padding: 10px;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--neon-blue);
+            border-radius: 5px;
+            color: var(--neon-blue);
+            font-size: 1em;
+            transition: box-shadow 0.3s ease;
+        }
+
+        #key-input:focus {
+            outline: none;
+            box-shadow: 0 0 20px var(--neon-blue);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1 class="title">Hệ Thống Phân Lấy Key</h1>
+        <div class="key-box">
+            <div class="key-section" id="get-key-section">
+                <p>Nhấn nút bên dưới để nhận key của bạn</p>
+                <a href="#" id="get-key-button" class="btn get-key-btn" target="_blank">Nhận Key Ngay!</a>
+            </div>
+            <div class="key-section hidden" id="verify-key-section">
+                <p>Nhập key của bạn vào ô bên dưới</p>
+                <input type="text" id="key-input" placeholder="Dán key của bạn vào đây">
+                <button id="verify-key-button" class="btn verify-btn">Xác Nhận Key</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // ================= TÙY CHỈNH TẠI ĐÂY =================
+            const GET_KEY_LINK = "https://example.com/get-key";
+            const KEY_CORRECT = "ABC123";
+            const REDIRECT_LINK = "https://example.com/access-granted";
+            // ======================================================
+
+            const getKeyButton = document.getElementById('get-key-button');
+            const verifyKeyButton = document.getElementById('verify-key-button');
+            const keyInput = document.getElementById('key-input');
+            const getSection = document.getElementById('get-key-section');
+            const verifySection = document.getElementById('verify-key-section');
+
+            // Set link cho nút "Nhận Key Ngay!"
+            getKeyButton.href = GET_KEY_LINK;
+
+            // Xử lý sự kiện khi click nút "Nhận Key Ngay!"
+            getKeyButton.addEventListener('click', (e) => {
+                // Chuyển đổi giữa 2 màn hình
+                setTimeout(() => {
+                    getSection.classList.add('hidden');
+                    verifySection.classList.remove('hidden');
+                }, 500);
+            });
+
+            // Xử lý sự kiện khi click nút "Xác Nhận Key"
+            verifyKeyButton.addEventListener('click', () => {
+                const userKey = keyInput.value.trim();
+
+                if (userKey === KEY_CORRECT) {
+                    alert('Key chính xác! Chuyển hướng đến trang web...');
+                    window.location.href = REDIRECT_LINK;
+                } else {
+                    alert('Key không hợp lệ. Vui lòng thử lại.');
+                    keyInput.value = '';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
