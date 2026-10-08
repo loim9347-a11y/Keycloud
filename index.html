@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<script>
+/* =====================================================================
+   👉 CẤU HÌNH NHANH — CHỈ CẦN SỬA 3 MỤC NÀY (nằm ngay đầu file)
+   ===================================================================== */
+var KEYGATE_QUICK = {
+  // 1) Link lấy key: bấm "Lấy Key" sẽ SAO CHÉP link này vào bộ nhớ tạm
+  KEY_LINK: "https://link4sub.com/TGEWSMKMsy",
+
+  // 2) Link web chính: chuyển đến đây khi nhập đúng key
+  MAIN_SITE_URL: "https://loim9347-a11y.github.io/cloudfixloi/",
+
+  // 3) Danh sách key hợp lệ (thêm/bớt tùy ý, cách nhau bằng dấu phẩy)
+  VALID_KEYS: ["Toro_thanasonemuza"]
+};
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#080b1a">
+<title>Cổng Xác Thực Key</title>
+<style>
+/* =====================================================================
+   1. BIẾN MÀU & THÔNG SỐ  (muốn đổi màu chủ đạo: sửa --accent-1/2/3)
+   ===================================================================== */
+:root {
+  --bg: #080b1a;
+  --bg-2: #0e1330;
+  --ink: #f4f1e8;
+  --muted: #9aa6c4;
+  --line: rgba(255, 255, 255, 0.1);
+  --glass: rgba(16, 20, 44, 0.84);
+  --card: rgba(255, 255, 255, 0.045);
+
+  --accent-1: #8b5cf6;   /* tím */
+  --accent-2: #3b82f6;   /* xanh dương */
+  --accent-3: #14d8c0;   /* xanh ngọc */
+  --grad: linear-gradient(120deg, var(--accent-1), var(--accent-2) 55%, var(--accent-3));
+
+  --ok: #34d399;
+  --err: #ff6b81;
+  --warn: #fbbf24;
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --radius-xl: 26px;
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* =====================================================================
+   2. RESET
+   ===================================================================== */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  font-family: var(--font);
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--ink);
+  background: radial-gradient(1200px 700px at 15% -10%, #1a1446 0%, transparent 60%),
+              radial-gradient(1000px 700px at 100% 110%, #0a2a4a 0%, transparent 55%),
+              var(--bg);
+  display: grid;
+  place-items: center;
+  padding: clamp(14px, 3vw, 40px);
+  overflow-x: hidden;
+}
+h1, h2, p { margin: 0; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+a { color: var(--accent-3); }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
+.icon {
+  width: 1.25em; height: 1.25em; flex: none;
+  fill: none; stroke: currentColor; stroke-width: 2;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-3);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
+/* =====================================================================
+   3. NỀN ĐỘNG
+   ===================================================================== */
+.bg { position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
+.bg__grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+  background-size: 54px 54px;
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 20%, transparent 75%);
+          mask-image: radial-gradient(ellipse at center, #000 20%, transparent 75%);
+}
+.orb {
+  position: absolute; border-radius: 50%;
+  filter: blur(70px); opacity: 0.5; will-change: transform;
+}
+.orb--1 { width: 46vmax; height: 46vmax; left: -14vmax; top: -16vmax; background: #6d3df2; animation: drift1 26s ease-in-out infinite alternate; }
+.orb--2 { width: 40vmax; height: 40vmax; right: -12vmax; top: 20vh; background: #1f6feb; animation: drift2 32s ease-in-out infinite alternate; }
+.orb--3 { width: 34vmax; height: 34vmax; left: 22vw; bottom: -18vmax; background: #0fbfae; opacity: 0.38; animation: drift3 29s ease-in-out infinite alternate; }
+#fx { position: absolute; inset: 0; width: 100%; height: 100%; }
+#glow {
+  position: fixed; left: 0; top: 0; width: 520px; height: 520px;
+  margin: -260px 0 0 -260px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(120, 130, 255, 0.2), transparent 65%);
+  opacity: 0; transition: opacity 0.5s; will-change: transform;
+  pointer-events: none; z-index: 0;
+}
+#glow.is-on { opacity: 1; }
+
+/* =====================================================================
+   4. KHUNG LỚN & TIÊU ĐỀ
+   ===================================================================== */
+.stage { position: relative; z-index: 1; width: 100%; max-width: 1180px; }
+
+.frame {
+  position: relative; padding: 1px; overflow: hidden;
+  border-radius: var(--radius-xl);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3), 0 18px 40px rgba(0,0,0,0.35), 0 50px 120px rgba(40, 30, 120, 0.35);
+  animation: enter 0.9s var(--ease) both;
+}
+.frame::before {            /* viền gradient chạy vòng */
+  content: ""; position: absolute; inset: -60%;
+  background: conic-gradient(from 0deg, transparent 0 55%, var(--accent-1), var(--accent-2), var(--accent-3), transparent 95%);
+  animation: spin 14s linear infinite; opacity: 0.8;
+}
+.frame__inner {
+  position: relative; border-radius: calc(var(--radius-xl) - 1px);
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+          backdrop-filter: blur(22px) saturate(140%);
+  padding: clamp(18px, 3.2vw, 40px);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .frame__inner { background: rgba(12, 15, 36, 0.97); }
+}
+
+.head { text-align: center; display: grid; justify-items: center; gap: 10px; margin-bottom: clamp(18px, 3vw, 32px); animation: rise 0.8s var(--ease) 0.1s both; }
+.logo {
+  width: 64px; height: 64px; border-radius: 20px; display: grid; place-items: center;
+  background: var(--grad); color: #fff;
+  box-shadow: 0 10px 30px rgba(99, 102, 241, 0.5), inset 0 1px 0 rgba(255,255,255,0.4);
+  animation: float 5s ease-in-out infinite;
+}
+.logo .icon { width: 32px; height: 32px; }
+.head__title {
+  font-size: clamp(1.7rem, 1.1rem + 2.6vw, 2.8rem); line-height: 1.12; letter-spacing: -0.02em; font-weight: 800;
+  background: var(--grad); -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
+.head__sub { color: var(--muted); max-width: 52ch; font-size: clamp(0.95rem, 0.9rem + 0.3vw, 1.05rem); }
+
+.config-warn {
+  display: none; margin: 0 auto 18px; max-width: 640px; padding: 12px 16px;
+  border-radius: var(--radius-md); background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.4); color: #ffe39a; font-size: 0.92rem; text-align: center;
+}
+.config-warn.is-show { display: block; }
+
+/* =====================================================================
+   5. BA KHU + ĐƯỜNG NỐI
+   ===================================================================== */
+.zones { display: grid; grid-template-columns: 1fr 44px 1fr 44px 1fr; align-items: stretch; }
+
+.zone {
+  position: relative; display: flex; flex-direction: column; gap: 14px;
+  padding: clamp(18px, 2.2vw, 26px); min-width: 0;
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-lg);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+  animation: rise 0.8s var(--ease) both;
+  animation-delay: calc(0.25s + var(--i, 0) * 0.13s);
+}
+.zone__badge {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 8px;
+  padding: 5px 12px 5px 8px; border-radius: 999px; font-size: 0.82rem; font-weight: 600;
+  color: #cfd6ff; background: rgba(139, 92, 246, 0.16); border: 1px solid rgba(139, 92, 246, 0.4);
+}
+.zone__title { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.01em; }
+.zone__text { color: var(--muted); font-size: 0.96rem; }
+.zone__note { color: var(--muted); font-size: 0.82rem; display: flex; align-items: center; gap: 6px; }
+.zone__spacer { flex: 1; }
+
+.link {
+  display: grid; place-items: center; color: var(--accent-3);
+  animation: rise 0.8s var(--ease) both; animation-delay: calc(0.3s + var(--i, 0) * 0.13s);
+}
+.link svg { width: 26px; height: 26px; animation: nudge 1.8s ease-in-out infinite; }
+
+/* =====================================================================
+   6. NÚT BẤM
+   ===================================================================== */
+.btn {
+  position: relative; overflow: hidden; width: 100%; min-height: 48px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 12px 18px; border: 0; border-radius: var(--radius-md);
+  font-weight: 700; font-size: 1rem; letter-spacing: 0.01em;
+  transition: transform 0.35s var(--ease), box-shadow 0.35s var(--ease), filter 0.35s var(--ease), opacity 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn--primary {
+  color: #fff; background: var(--grad);
+  box-shadow: 0 8px 22px rgba(79, 110, 247, 0.38), inset 0 1px 0 rgba(255,255,255,0.35);
+}
+.btn--primary::after {            /* ánh sáng lướt */
+  content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 45%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,0.45), transparent);
+  transform: translateX(-130%) skewX(-18deg); pointer-events: none;
+}
+.btn--primary:hover:not(:disabled) {
+  transform: translateY(-3px); filter: brightness(1.1);
+  box-shadow: 0 14px 34px rgba(79, 110, 247, 0.55), 0 0 28px rgba(20, 216, 192, 0.25), inset 0 1px 0 rgba(255,255,255,0.4);
+}
+.btn--primary:hover:not(:disabled)::after { transform: translateX(330%) skewX(-18deg); transition: transform 0.9s var(--ease); }
+.btn:active:not(:disabled) { transform: scale(0.97); transition-duration: 0.12s; }
+.btn:disabled { opacity: 0.6; filter: saturate(0.6); }
+.btn--ghost { background: rgba(255,255,255,0.07); border: 1px solid var(--line); color: var(--ink); }
+.btn--ghost:hover:not(:disabled) { background: rgba(255,255,255,0.13); transform: translateY(-2px); }
+.btn--done { background: linear-gradient(120deg, #10b981, #34d399); box-shadow: 0 8px 22px rgba(16,185,129,0.4); }
+
+.spinner {
+  display: none; width: 18px; height: 18px; border-radius: 50%;
+  border: 2.5px solid rgba(255,255,255,0.35); border-top-color: #fff; animation: spin 0.7s linear infinite;
+}
+.is-loading .spinner { display: inline-block; }
+.is-loading .btn__icon { display: none; }
+
+.fallback { display: none; font-size: 0.88rem; word-break: break-all; color: var(--accent-3); -webkit-user-select: all; user-select: all; }
+.fallback.is-show { display: block; }
+.hint { display: none; font-size: 0.88rem; color: #b5f5dc; padding: 8px 12px; border-radius: 12px; background: rgba(52, 211, 153, 0.1); border: 1px solid rgba(52, 211, 153, 0.3); }
+.hint.is-show { display: block; animation: rise 0.5s var(--ease) both; }
+
+/* =====================================================================
+   7. Ô NHẬP KEY
+   ===================================================================== */
+.label { display: block; font-size: 0.88rem; font-weight: 600; color: var(--muted); margin-bottom: 8px; transition: color 0.3s, transform 0.4s var(--ease); }
+.field-wrap:focus-within .label { color: #d9ddff; transform: translateY(-2px); }
+
+.field {
+  position: relative; display: flex; align-items: center; border-radius: var(--radius-md);
+  background: rgba(5, 8, 24, 0.6); border: 1px solid var(--line);
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.field:focus-within {
+  border-color: var(--accent-2);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25), 0 0 26px rgba(139, 92, 246, 0.35);
+}
+.field.is-invalid { border-color: var(--err); box-shadow: 0 0 0 3px rgba(255, 107, 129, 0.22), 0 0 22px rgba(255, 107, 129, 0.3); }
+.field.is-shake { animation: shake 0.5s var(--ease); }
+.field__lead { margin-left: 14px; color: var(--accent-3); }
+.field__input {
+  flex: 1; min-width: 0; min-height: 48px; padding: 10px 8px;
+  background: transparent; border: 0; outline: 0; font-size: 1rem; letter-spacing: 0.02em;
+}
+.field__input::placeholder { color: #66729a; }
+.field__tools { display: flex; gap: 4px; padding-right: 6px; }
+.tool {
+  width: 40px; height: 40px; display: grid; place-items: center; border: 0; border-radius: 10px;
+  background: transparent; color: var(--muted); transition: background 0.25s, color 0.25s, transform 0.25s var(--ease);
+}
+.tool:hover:not(:disabled) { background: rgba(255,255,255,0.1); color: #fff; }
+.tool:active:not(:disabled) { transform: scale(0.9); }
+.lock-info { min-height: 1.3em; font-size: 0.86rem; color: var(--warn); }
+
+/* =====================================================================
+   8. KHU WEB CHÍNH
+   ===================================================================== */
+.site-card {
+  position: relative; overflow: hidden; display: grid; gap: 10px; padding: 18px;
+  border-radius: var(--radius-md); background: rgba(5, 8, 24, 0.55); border: 1px solid var(--line);
+  transition: border-color 0.6s var(--ease), box-shadow 0.6s var(--ease);
+}
+.site-card__name { font-size: 1.15rem; font-weight: 700; overflow-wrap: anywhere; }
+.site-card__desc { color: var(--muted); font-size: 0.93rem; overflow-wrap: anywhere; }
+.site-card__url { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #8fa0cc; overflow-wrap: anywhere; word-break: break-all; }
+.site-card.is-unlocked { border-color: rgba(52, 211, 153, 0.7); box-shadow: 0 0 0 1px rgba(52,211,153,0.35), 0 0 34px rgba(52, 211, 153, 0.3); }
+
+.status {
+  justify-self: start; display: inline-flex; align-items: center; gap: 7px;
+  padding: 4px 12px 4px 9px; border-radius: 999px; font-size: 0.82rem; font-weight: 700;
+  color: #ffe39a; background: rgba(251,191,36,0.13); border: 1px solid rgba(251,191,36,0.45);
+  transition: color 0.4s, background 0.4s, border-color 0.4s;
+}
+.status .icon { width: 1.05em; height: 1.05em; }
+.status__open { display: none; }
+.site-card.is-unlocked .status { color: #b5f5dc; background: rgba(52,211,153,0.14); border-color: rgba(52,211,153,0.55); }
+.site-card.is-unlocked .status__closed { display: none; }
+.site-card.is-unlocked .status__open { display: inline-block; }
+
+.veil {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  background: rgba(8, 11, 26, 0.55);
+  -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px);
+  color: var(--warn); transition: opacity 0.7s var(--ease) 0.55s, visibility 0s linear 1.3s;
+}
+.veil__lock, .veil__unlock { grid-area: 1 / 1; width: 46px; height: 46px; transition: opacity 0.35s, transform 0.5s var(--ease); }
+.veil__lock { transform-origin: 50% 0; animation: sway 3s ease-in-out infinite; }
+.veil__unlock { opacity: 0; transform: scale(0.6); color: var(--ok); }
+.site-card.is-unlocked .veil { opacity: 0; visibility: hidden; }
+.site-card.is-unlocked .veil__lock { opacity: 0; animation: none; }
+.site-card.is-unlocked .veil__unlock { opacity: 1; transform: scale(1.15); }
+.site-card:not(.is-unlocked) .site-card__name,
+.site-card:not(.is-unlocked) .site-card__desc { opacity: 0.55; }
+.enter-btn { display: none; }
+.enter-btn.is-show { display: inline-flex; animation: rise 0.6s var(--ease) both; }
+
+/* =====================================================================
+   9. THÔNG BÁO NỔI (TOAST)
+   ===================================================================== */
+.toast {
+  position: fixed; z-index: 50; left: 50%; top: max(14px, env(safe-area-inset-top));
+  width: min(440px, calc(100vw - 24px)); overflow: hidden;
+  padding: 16px 16px 20px; border-radius: 18px;
+  background: rgba(14, 18, 42, 0.92); border: 1px solid var(--line);
+  -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.55), 0 0 40px var(--toast-glow, rgba(255,107,129,0.25));
+  display: grid; grid-template-columns: auto 1fr auto; gap: 4px 14px;
+  opacity: 0; visibility: hidden; transform: translate(-50%, -24px) scale(0.96);
+  transition: opacity 0.4s var(--ease), transform 0.5s var(--ease), visibility 0s linear 0.5s;
+}
+.toast.is-show { opacity: 1; visibility: visible; transform: translate(-50%, 0) scale(1); transition-delay: 0s; }
+.toast--error { --toast-c: var(--err); --toast-glow: rgba(255,107,129,0.28); border-color: rgba(255,107,129,0.55); }
+.toast--warn { --toast-c: var(--warn); --toast-glow: rgba(251,191,36,0.2); border-color: rgba(251,191,36,0.5); }
+.toast--info { --toast-c: var(--accent-3); --toast-glow: rgba(20,216,192,0.2); border-color: rgba(20,216,192,0.45); }
+.toast__icon {
+  grid-row: 1 / span 3; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center;
+  color: var(--toast-c); background: color-mix(in srgb, var(--toast-c) 16%, transparent);
+  border: 1.5px solid var(--toast-c);
+}
+.toast--error.is-show .toast__icon { animation: shake 0.5s var(--ease) 0.15s; }
+.toast__icon .icon { width: 24px; height: 24px; stroke-dasharray: 60; stroke-dashoffset: 60; }
+.toast.is-show .toast__icon .icon { animation: draw 0.7s var(--ease) 0.15s forwards; }
+.toast__title { font-weight: 700; font-size: 1.05rem; align-self: end; }
+.toast__desc { grid-column: 2; color: var(--muted); font-size: 0.92rem; overflow-wrap: anywhere; }
+.toast__meta { grid-column: 2; font-size: 0.84rem; color: var(--toast-c); font-weight: 600; }
+.toast__close { grid-column: 3; grid-row: 1; width: 34px; height: 34px; margin: -6px -6px 0 0; display: grid; place-items: center; border: 0; background: transparent; color: var(--muted); border-radius: 10px; }
+.toast__close:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.toast__actions { grid-column: 2 / span 2; display: none; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.toast__actions.is-show { display: flex; }
+.toast__actions .btn { width: auto; min-height: 40px; padding: 8px 14px; font-size: 0.92rem; }
+.toast__bar { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: var(--toast-c); transform-origin: left; transform: scaleX(0); }
+.toast__bar.is-run { animation: bar linear forwards; }
+
+/* =====================================================================
+   10. MODAL THÀNH CÔNG
+   ===================================================================== */
+.overlay {
+  position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 16px;
+  background: rgba(4, 6, 18, 0.7); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  opacity: 0; visibility: hidden; transition: opacity 0.4s var(--ease), visibility 0s linear 0.4s;
+  overflow-y: auto;
+}
+.overlay.is-open { opacity: 1; visibility: visible; transition-delay: 0s; }
+.modal {
+  position: relative; width: min(420px, 100%); margin: auto; text-align: center; overflow: hidden;
+  display: grid; justify-items: center; gap: 12px; padding: 30px 24px 24px;
+  border-radius: var(--radius-xl); background: rgba(12, 18, 40, 0.94); border: 1px solid rgba(52, 211, 153, 0.6);
+  box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 60px rgba(52, 211, 153, 0.25);
+  transform: translateY(24px) scale(0.94); transition: transform 0.6s var(--ease);
+}
+.overlay.is-open .modal { transform: none; }
+.modal:focus { outline: none; }
+.modal__title { font-size: 1.55rem; font-weight: 800; }
+.modal__desc { color: var(--muted); }
+.modal__actions { display: flex; gap: 10px; width: 100%; margin-top: 6px; }
+.modal__actions .btn { flex: 1; }
+
+.tick { width: 84px; height: 84px; color: var(--ok); filter: drop-shadow(0 0 14px rgba(52,211,153,0.55)); }
+.tick circle, .tick path { fill: none; stroke: currentColor; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 100; stroke-dashoffset: 100; }
+.overlay.is-open .tick circle { animation: draw 0.8s var(--ease) 0.2s both; }
+.overlay.is-open .tick path { animation: draw 0.5s var(--ease) 0.8s both; }
+
+.count { position: relative; width: 124px; height: 124px; }
+.count svg { width: 100%; height: 100%; }
+.count__track { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 7; }
+.count__ring { fill: none; stroke: url(#ringGrad); stroke-width: 7; stroke-linecap: round; stroke-dasharray: 100; stroke-dashoffset: 0; }
+.count__ring.is-run { animation: ring linear forwards; }
+.count__num { position: absolute; inset: 0; display: grid; place-items: center; font-size: 2.8rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.count__num.is-pop { animation: pop 0.45s var(--ease); }
+
+.confetti { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.confetti i {
+  position: absolute; top: -12px; left: var(--x); width: 8px; height: 14px; border-radius: 2px;
+  background: var(--c); opacity: 0; animation: fall var(--d) ease-in var(--delay) forwards;
+}
+
+/* =====================================================================
+   11. CÔNG CỤ TẠO MÃ BĂM (chỉ hiện khi mở trang với #tao-ma-bam)
+   ===================================================================== */
+.tool-card { display: none; margin-top: 18px; padding: 20px; border-radius: var(--radius-lg); background: var(--glass); border: 1px solid var(--line); }
+.tool-card.is-show { display: grid; gap: 10px; }
+.tool-card .field__input { padding-left: 14px; }
+.tool-card code { display: block; padding: 12px; border-radius: 10px; background: rgba(0,0,0,0.4); color: #b5f5dc; word-break: break-all; font-size: 0.85rem; min-height: 3em; }
+
+noscript .nojs {
+  position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; text-align: center;
+  padding: 24px; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 1.1rem;
+}
+
+/* =====================================================================
+   12. HOẠT ẢNH (KEYFRAMES)
+   ===================================================================== */
+@keyframes enter { from { opacity: 0; transform: translateY(30px) scale(0.97); } to { opacity: 1; transform: none; } }
+@keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+@keyframes nudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(5px); } }
+@keyframes sway { 0%, 100% { transform: rotate(-7deg); } 50% { transform: rotate(7deg); } }
+@keyframes shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-8px); } 40% { transform: translateX(7px); } 60% { transform: translateX(-5px); } 80% { transform: translateX(3px); } }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes bar { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+@keyframes ring { to { stroke-dashoffset: 100; } }
+@keyframes pop { 0% { transform: scale(0.6); opacity: 0.4; } 60% { transform: scale(1.18); opacity: 1; } 100% { transform: scale(1); } }
+@keyframes fall { 0% { opacity: 1; transform: translateY(0) rotate(0); } 100% { opacity: 0; transform: translateY(420px) rotate(var(--r)); } }
+@keyframes drift1 { to { transform: translate(8vw, 10vh) scale(1.1); } }
+@keyframes drift2 { to { transform: translate(-10vw, -8vh) scale(0.92); } }
+@keyframes drift3 { to { transform: translate(6vw, -10vh) scale(1.12); } }
+
+/* =====================================================================
+   13. RESPONSIVE
+   ===================================================================== */
+@media (max-width: 980px) {
+  .zones { grid-template-columns: 1fr; }
+  .link { height: 40px; }
+  .link svg { transform: rotate(90deg); animation: nudgeY 1.8s ease-in-out infinite; }
+  .stage { max-width: 560px; }
+}
+@keyframes nudgeY { 0%, 100% { transform: rotate(90deg) translateX(0); } 50% { transform: rotate(90deg) translateX(5px); } }
+@media (max-width: 420px) {
+  .modal { padding: 26px 16px 18px; }
+  .modal__actions { flex-direction: column; }
+  .toast { padding: 14px 12px 18px; gap: 4px 10px; }
+  .toast__icon { width: 40px; height: 40px; }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  body { place-items: start center; }
+  .overlay { place-items: start center; }
+}
+
+/* =====================================================================
+   14. GIẢM CHUYỂN ĐỘNG
+   ===================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important; animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important; transition-delay: 0s !important; scroll-behavior: auto !important;
+  }
+  .orb, #fx, #glow { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Bộ biểu tượng SVG nội tuyến (đổi màu bằng currentColor) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-key" viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+    <symbol id="i-unlock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></symbol>
+    <symbol id="i-xcircle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-eyeoff" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><path d="M1 1l22 22"/></symbol>
+    <symbol id="i-clip" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></symbol>
+    <symbol id="i-ext" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></symbol>
+    <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#8b5cf6"/><stop offset="55%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#14d8c0"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<!-- Nền động -->
+<div class="bg" aria-hidden="true">
+  <div class="orb orb--1"></div><div class="orb orb--2"></div><div class="orb orb--3"></div>
+  <div class="bg__grid"></div>
+  <canvas id="fx"></canvas>
+</div>
+<div id="glow" aria-hidden="true"></div>
+
+<main class="stage">
+  <div class="frame" id="panel">
+    <div class="frame__inner">
+
+      <header class="head">
+        <div class="logo" aria-hidden="true"><svg class="icon"><use href="#i-key"/></svg></div>
+        <h1 class="head__title" id="siteTitle">Cổng Xác Thực Key</h1>
+        <p class="head__sub" id="siteSubtitle">Làm theo ba bước: lấy key, dán key, rồi vào web chính.</p>
+      </header>
+
+      <p class="config-warn" id="configWarn" role="status"></p>
+
+      <div class="zones">
+
+        <!-- KHU 1: LẤY KEY -->
+        <section class="zone" style="--i:0" aria-labelledby="z1Title">
+          <span class="zone__badge"><svg class="icon" aria-hidden="true"><use href="#i-bolt"/></svg>Bước 1</span>
+          <h2 class="zone__title" id="z1Title">Lấy Key</h2>
+          <p class="zone__text">Bấm nút bên dưới để sao chép link lấy key. Dán link vào thanh địa chỉ của trình duyệt, hoàn tất các bước ở đó rồi sao chép key của bạn.</p>
+          <div class="zone__spacer"></div>
+          <button class="btn btn--primary" id="btnGetKey" type="button">
+            <svg class="icon btn__icon" id="getKeyIcon" aria-hidden="true"><use href="#i-key"/></svg>
+            <span id="getKeyLabel">Lấy Key</span>
+          </button>
+          <p class="zone__note"><svg class="icon" aria-hidden="true" style="width:1em;height:1em"><use href="#i-ext"/></svg>Link sẽ được sao chép vào bộ nhớ tạm.</p>
+          <p class="hint" id="getKeyHint" role="status">Đã sao chép! Hãy dán link vào thanh địa chỉ trình duyệt để lấy key, xong quay lại đây và dán key vào ô bên cạnh.</p>
+          <p class="fallback" id="fallbackLink" role="status"></p>
+        </section>
+
+        <div class="link" style="--i:0" aria-hidden="true"><svg class="icon"><use href="#i-arrow"/></svg></div>
+
+        <!-- KHU 2: NHẬP KEY -->
+        <section class="zone" style="--i:1" aria-labelledby="z2Title">
+          <span class="zone__badge"><svg class="icon" aria-hidden="true"><use href="#i-key"/></svg>Bước 2</span>
+          <h2 class="zone__title" id="z2Title">Nhập Key</h2>
+          <div class="field-wrap">
+            <label class="label" for="keyInput">Key của bạn</label>
+            <div class="field" id="field">
+              <svg class="icon field__lead" aria-hidden="true"><use href="#i-key"/></svg>
+              <input class="field__input" id="keyInput" type="password" maxlength="128"
+                     placeholder="Dán key của bạn vào đây" autocomplete="off" spellcheck="false"
+                     autocapitalize="off" autocorrect="off" enterkeyhint="go">
+              <div class="field__tools">
+                <button class="tool" id="btnToggle" type="button" aria-label="Hiện key" aria-pressed="false"><svg class="icon" aria-hidden="true"><use id="toggleUse" href="#i-eye"/></svg></button>
+                <button class="tool" id="btnPaste" type="button" aria-label="Dán nhanh từ bộ nhớ tạm"><svg class="icon" aria-hidden="true"><use href="#i-clip"/></svg></button>
+              </div>
+            </div>
+          </div>
+          <div class="zone__spacer"></div>
+          <button class="btn btn--primary" id="btnConfirm" type="button">
+            <svg class="icon btn__icon" aria-hidden="true"><use href="#i-check"/></svg>
+            <span class="spinner" aria-hidden="true"></span>
+            <span id="confirmLabel">Xác nhận</span>
+          </button>
+          <p class="lock-info" id="lockInfo" role="status"></p>
+        </section>
+
+        <div class="link" style="--i:1" aria-hidden="true"><svg class="icon"><use href="#i-arrow"/></svg></div>
+
+        <!-- KHU 3: WEB CHÍNH -->
+        <section class="zone" style="--i:2" aria-labelledby="z3Title">
+          <span class="zone__badge"><svg class="icon" aria-hidden="true"><use href="#i-globe"/></svg>Bước 3</span>
+          <h2 class="zone__title" id="z3Title">Web Chính</h2>
+          <div class="site-card" id="siteCard">
+            <span class="status" id="statusBadge">
+              <svg class="icon status__closed" aria-hidden="true"><use href="#i-lock"/></svg>
+              <svg class="icon status__open" aria-hidden="true"><use href="#i-unlock"/></svg>
+              <span id="statusText">Đang khóa</span>
+            </span>
+            <p class="site-card__name" id="siteName">Web chính</p>
+            <p class="site-card__desc" id="siteDesc"></p>
+            <div class="veil" aria-hidden="true">
+              <svg class="icon veil__lock"><use href="#i-lock"/></svg>
+              <svg class="icon veil__unlock"><use href="#i-unlock"/></svg>
+            </div>
+          </div>
+          <div class="zone__spacer"></div>
+          <button class="btn btn--primary enter-btn" id="btnEnterMain" type="button">
+            <svg class="icon" aria-hidden="true"><use href="#i-unlock"/></svg>Vào web chính
+          </button>
+        </section>
+
+      </div>
+      <p class="sr-only" id="srStatus" role="status" aria-live="polite"></p>
+    </div>
+  </div>
+
+  <!-- Công cụ tạo mã băm: mở trang với đuôi #tao-ma-bam -->
+  <section class="tool-card" id="hashTool" aria-labelledby="hashTitle">
+    <h2 class="zone__title" id="hashTitle">Công cụ tạo mã băm SHA-256</h2>
+    <p class="zone__text">Nhập key, bấm “Tạo mã băm”, rồi dán kết quả vào <code style="display:inline;padding:2px 6px">VALID_KEYS</code> (và đặt <code style="display:inline;padding:2px 6px">USE_HASH: true</code>).</p>
+    <div class="field"><input class="field__input" id="hashIn" type="text" placeholder="Nhập key cần băm" autocomplete="off" spellcheck="false" aria-label="Key cần băm"></div>
+    <button class="btn btn--primary" id="hashBtn" type="button">Tạo mã băm</button>
+    <code id="hashOut" aria-live="polite"></code>
+  </section>
+</main>
+
+<!-- Thông báo nổi -->
+<div class="toast toast--error" id="toast" role="alert" aria-live="assertive" aria-atomic="true">
+  <div class="toast__icon" aria-hidden="true"><svg class="icon"><use id="toastIcon" href="#i-xcircle"/></svg></div>
+  <p class="toast__title" id="toastTitle"></p>
+  <button class="toast__close" id="toastClose" type="button" aria-label="Đóng thông báo"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg></button>
+  <p class="toast__desc" id="toastDesc"></p>
+  <p class="toast__meta" id="toastMeta"></p>
+  <div class="toast__actions" id="toastActions">
+    <button class="btn btn--primary" id="toastRetry" type="button">Thử lại</button>
+    <button class="btn btn--ghost" id="toastNewKey" type="button">Lấy key mới</button>
+  </div>
+  <div class="toast__bar" id="toastBar"></div>
+</div>
+
+<!-- Modal thành công -->
+<div class="overlay" id="overlay" aria-hidden="true">
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="okTitle" aria-describedby="okDesc" tabindex="-1">
+    <div class="confetti" id="confetti" aria-hidden="true"></div>
+    <svg class="tick" viewBox="0 0 80 80" aria-hidden="true">
+      <circle cx="40" cy="40" r="36" pathLength="100"/>
+      <path d="M25 41l11 11 20-23" pathLength="100"/>
+    </svg>
+    <h2 class="modal__title" id="okTitle">Key chính xác! 🎉</h2>
+    <p class="modal__desc" id="okDesc">Chào mừng bạn! Đang chuyển đến web chính sau…</p>
+    <div class="count" role="timer">
+      <svg viewBox="0 0 120 120" aria-hidden="true">
+        <circle class="count__track" cx="60" cy="60" r="52"/>
+        <circle class="count__ring" id="countRing" cx="60" cy="60" r="52" pathLength="100" transform="rotate(-90 60 60)"/>
+      </svg>
+      <span class="count__num" id="countNum">5</span>
+    </div>
+    <div class="modal__actions">
+      <button class="btn btn--primary" id="btnGoNow" type="button">Vào ngay</button>
+      <button class="btn btn--ghost" id="btnCancel" type="button">Hủy</button>
+    </div>
+  </div>
+</div>
+
+<noscript><div class="nojs"><p>Trang này cần bật JavaScript để hoạt động.<br>Vui lòng bật JavaScript trong trình duyệt rồi tải lại trang.</p></div></noscript>
+
+<script>
+(function () {
+  "use strict";
+
+  /* =====================================================================
+     👉 Các mục còn lại (tùy chọn). Link lấy key, link web chính và key hợp lệ đã chuyển lên đầu file.
+     ===================================================================== */
+  var CONFIG = {
+    KEY_LINK: KEYGATE_QUICK.KEY_LINK,          // Lấy từ khối cấu hình nhanh ở đầu file
+    MAIN_SITE_URL: KEYGATE_QUICK.MAIN_SITE_URL, // Lấy từ khối cấu hình nhanh ở đầu file
+    MAIN_SITE_NAME: "UGPHONE MOD VÔ HẠN THỜI GIAN",               // Tên hiển thị của web chính
+    MAIN_SITE_DESC: "Nơi chứa toàn bộ cloud phone dành cho thành viên đã xác thực.", // Mô tả ngắn
+    VALID_KEYS: KEYGATE_QUICK.VALID_KEYS,       // Lấy từ khối cấu hình nhanh ở đầu file
+    EXPIRED_KEYS: ["OLD-KEY-0001"],            // Danh sách key đã hết hạn
+    USE_HASH: false,                           // true = VALID_KEYS/EXPIRED_KEYS là mã băm SHA-256 (xem hướng dẫn)
+    CASE_SENSITIVE: false,                     // true = phân biệt chữ hoa/thường
+    COUNTDOWN_SECONDS: 5,                      // Số giây đếm ngược khi key đúng
+    MAX_ATTEMPTS: 5,                           // Số lần nhập sai tối đa trước khi khóa tạm
+    LOCK_SECONDS: 15,                          // Số giây khóa tạm
+    REMEMBER_UNLOCK: false,                    // true = nhớ trạng thái đã mở khóa trên trình duyệt này
+    SITE_TITLE: "Cổng Xác Thực Key",           // Tiêu đề bảng
+    SITE_SUBTITLE: "Làm theo ba bước: lấy key, dán key, rồi vào web chính." // Phụ đề bảng
+  };
+
+  /* ⚠️ LƯU Ý BẢO MẬT: đây là trang thuần phía trình duyệt. Danh sách key (kể cả
+     mã băm) nằm trong mã nguồn nên ai xem mã nguồn cũng thấy và có thể bỏ qua
+     cổng này. Băm SHA-256 chỉ che key khỏi việc đọc thẳng, KHÔNG phải bảo mật thật.
+     Muốn an toàn thật sự, hãy kiểm tra key ở máy chủ (backend). */
+
+  /* ---------------------------------------------------------------------
+     Chuẩn hóa cấu hình (tránh giá trị sai làm hỏng trang)
+     --------------------------------------------------------------------- */
+  var PLACEHOLDER_HOST = "example.com";
+  var REMEMBER_KEY = "keygate_unlocked_v1";
+
+  function toPosInt(v, fallback) {
+    var n = Number(v);
+    return isFinite(n) && n >= 1 ? Math.floor(n) : fallback;
+  }
+  var COUNTDOWN = toPosInt(CONFIG.COUNTDOWN_SECONDS, 5);
+  var MAX_ATTEMPTS = toPosInt(CONFIG.MAX_ATTEMPTS, 5);
+  var LOCK_SECONDS = toPosInt(CONFIG.LOCK_SECONDS, 15);
+
+  var reduceMotion = false;
+  try { reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) { reduceMotion = false; }
+
+  /* ---------------------------------------------------------------------
+     Truy vấn phần tử một lần
+     --------------------------------------------------------------------- */
+  function $(id) { return document.getElementById(id); }
+  var els = {
+    title: $("siteTitle"), subtitle: $("siteSubtitle"), configWarn: $("configWarn"),
+    btnGetKey: $("btnGetKey"), getKeyLabel: $("getKeyLabel"), getKeyIcon: $("getKeyIcon"),
+    getKeyHint: $("getKeyHint"), fallbackLink: $("fallbackLink"),
+    field: $("field"), input: $("keyInput"), btnToggle: $("btnToggle"), toggleUse: $("toggleUse"),
+    btnPaste: $("btnPaste"), btnConfirm: $("btnConfirm"), confirmLabel: $("confirmLabel"), lockInfo: $("lockInfo"),
+    siteCard: $("siteCard"), statusText: $("statusText"), siteName: $("siteName"), siteDesc: $("siteDesc"),
+    siteUrl: $("siteUrl"), btnEnterMain: $("btnEnterMain"), srStatus: $("srStatus"),
+    toast: $("toast"), toastIcon: $("toastIcon"), toastTitle: $("toastTitle"), toastDesc: $("toastDesc"),
+    toastMeta: $("toastMeta"), toastActions: $("toastActions"), toastBar: $("toastBar"),
+    toastClose: $("toastClose"), toastRetry: $("toastRetry"), toastNewKey: $("toastNewKey"),
+    overlay: $("overlay"), modal: $("modal"), confetti: $("confetti"), countNum: $("countNum"),
+    countRing: $("countRing"), okTitle: $("okTitle"), okDesc: $("okDesc"),
+    btnGoNow: $("btnGoNow"), btnCancel: $("btnCancel"),
+    hashTool: $("hashTool"), hashIn: $("hashIn"), hashBtn: $("hashBtn"), hashOut: $("hashOut"),
+    fx: $("fx"), glow: $("glow")
+  };
+
+  /* ---------------------------------------------------------------------
+     Trạng thái: idle | checking | success | locked
+     --------------------------------------------------------------------- */
+  var state = {
+    status: "idle",
+    attempts: 0,
+    redirected: false,
+    unlocked: false,
+    configOk: true,
+    lockEnd: 0,
+    lockTimer: null,
+    countTimer: null,
+    countEnd: 0,
+    countShown: 0,
+    toastTimer: null,
+    getKeyTimer: null,
+    lastFocus: null
+  };
+
+  /* ---------------------------------------------------------------------
+     Tiện ích
+     --------------------------------------------------------------------- */
+  function setText(el, text) { if (el) { el.textContent = text; } }
+  function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function restartAnim(el, cls) { if (!el) { return; } el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+
+  function parseUrl(u) {
+    try {
+      var p = new URL(String(u));
+      return (p.protocol === "http:" || p.protocol === "https:") ? p : null;
+    } catch (e) { return null; }
+  }
+  function isConfigured(u) {
+    var p = parseUrl(u);
+    return !!p && p.hostname.replace(/^www\./, "") !== PLACEHOLDER_HOST;
+  }
+  function shortUrl(u) {
+    var p = parseUrl(u);
+    if (!p) { return "Chưa cấu hình"; }
+    var path = p.pathname === "/" ? "" : p.pathname;
+    var s = p.hostname + path;
+    return s.length > 38 ? s.slice(0, 37) + "…" : s;
+  }
+  function announce(msg) { setText(els.srStatus, ""); setTimeout(function () { setText(els.srStatus, msg); }, 30); }
+
+  /* ---------------------------------------------------------------------
+     Chuẩn hóa & băm key
+     --------------------------------------------------------------------- */
+  function normalize(s) {
+    var t = String(s).trim();
+    return CONFIG.CASE_SENSITIVE ? t : t.toLowerCase();
+  }
+
+  // SHA-256 thuần JS: dự phòng khi crypto.subtle không dùng được (ví dụ file://)
+  function sha256Sync(msg) {
+    var bytes = new TextEncoder().encode(msg);
+    var K = [], H = [], n = 2, c = 0, i, j;
+    while (c < 64) {
+      var prime = true;
+      for (j = 2; j * j <= n; j++) { if (n % j === 0) { prime = false; break; } }
+      if (prime) {
+        if (c < 8) { H[c] = Math.floor((Math.sqrt(n) % 1) * 4294967296) | 0; }
+        K[c] = Math.floor((Math.cbrt(n) % 1) * 4294967296) | 0;
+        c++;
+      }
+      n++;
+    }
+    var len = bytes.length;
+    var total = ((len + 9 + 63) >> 6) << 6;
+    var buf = new Uint8Array(total);
+    buf.set(bytes);
+    buf[len] = 0x80;
+    var view = new DataView(buf.buffer);
+    view.setUint32(total - 8, Math.floor((len * 8) / 4294967296));
+    view.setUint32(total - 4, (len * 8) >>> 0);
+    function rotr(x, k) { return (x >>> k) | (x << (32 - k)); }
+    var w = new Int32Array(64);
+    for (var off = 0; off < total; off += 64) {
+      for (i = 0; i < 16; i++) { w[i] = view.getUint32(off + i * 4); }
+      for (i = 16; i < 64; i++) {
+        var s0 = rotr(w[i - 15], 7) ^ rotr(w[i - 15], 18) ^ (w[i - 15] >>> 3);
+        var s1 = rotr(w[i - 2], 17) ^ rotr(w[i - 2], 19) ^ (w[i - 2] >>> 10);
+        w[i] = (w[i - 16] + s0 + w[i - 7] + s1) | 0;
+      }
+      var a = H[0], b = H[1], cc = H[2], d = H[3], e = H[4], f = H[5], g = H[6], h = H[7];
+      for (i = 0; i < 64; i++) {
+        var S1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25);
+        var ch = (e & f) ^ (~e & g);
+        var t1 = (h + S1 + ch + K[i] + w[i]) | 0;
+        var S0 = rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22);
+        var maj = (a & b) ^ (a & cc) ^ (b & cc);
+        var t2 = (S0 + maj) | 0;
+        h = g; g = f; f = e; e = (d + t1) | 0; d = cc; cc = b; b = a; a = (t1 + t2) | 0;
+      }
+      H[0] = (H[0] + a) | 0; H[1] = (H[1] + b) | 0; H[2] = (H[2] + cc) | 0; H[3] = (H[3] + d) | 0;
+      H[4] = (H[4] + e) | 0; H[5] = (H[5] + f) | 0; H[6] = (H[6] + g) | 0; H[7] = (H[7] + h) | 0;
+    }
+    var out = "";
+    for (i = 0; i < 8; i++) { out += (H[i] >>> 0).toString(16).padStart(8, "0"); }
+    return out;
+  }
+
+  function sha256Hex(text) {
+    try {
+      if (window.crypto && window.crypto.subtle && window.TextEncoder) {
+        return window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)).then(function (buf) {
+          var arr = new Uint8Array(buf), s = "";
+          for (var i = 0; i < arr.length; i++) { s += arr[i].toString(16).padStart(2, "0"); }
+          return s;
+        }).catch(function () { return sha256Sync(text); });
+      }
+    } catch (e) { /* dùng bản dự phòng bên dưới */ }
+    return Promise.resolve(sha256Sync(text));
+  }
+
+  var validSet = {}, expiredSet = {};
+  function buildSets() {
+    var list = Array.isArray(CONFIG.VALID_KEYS) ? CONFIG.VALID_KEYS : [];
+    var exp = Array.isArray(CONFIG.EXPIRED_KEYS) ? CONFIG.EXPIRED_KEYS : [];
+    function prep(v) { return CONFIG.USE_HASH ? String(v).trim().toLowerCase() : normalize(v); }
+    list.forEach(function (k) { if (String(k).trim()) { validSet[prep(k)] = true; } });
+    exp.forEach(function (k) { if (String(k).trim()) { expiredSet[prep(k)] = true; } });
+    return Object.keys(validSet).length > 0;
+  }
+
+  // Trả về "valid" | "expired" | "invalid"
+  function classify(raw) {
+    var norm = normalize(raw);
+    var p = CONFIG.USE_HASH ? sha256Hex(norm) : Promise.resolve(norm);
+    return p.then(function (probe) {
+      if (validSet[probe]) { return "valid"; }
+      if (expiredSet[probe]) { return "expired"; }
+      return "invalid";
+    });
+  }
+
+  /* ---------------------------------------------------------------------
+     Thông báo nổi (toast): mỗi lần chỉ một thông báo
+     --------------------------------------------------------------------- */
+  var TOAST_ICONS = { error: "#i-xcircle", warn: "#i-alert", info: "#i-info" };
+
+  function hideToast() {
+    clearTimeout(state.toastTimer);
+    els.toast.classList.remove("is-show");
+    els.toastBar.classList.remove("is-run");
+  }
+
+  function showToast(opts) {
+    var variant = opts.variant || "info";
+    var duration = opts.duration || 6000;
+    clearTimeout(state.toastTimer);
+    els.toast.classList.remove("is-show");
+    void els.toast.offsetWidth;
+    els.toast.className = "toast toast--" + variant;
+    els.toast.setAttribute("aria-live", variant === "error" ? "assertive" : "polite");
+    els.toastIcon.setAttribute("href", TOAST_ICONS[variant] || TOAST_ICONS.info);
+    setText(els.toastTitle, opts.title || "");
+    setText(els.toastDesc, opts.desc || "");
+    setText(els.toastMeta, opts.meta || "");
+    els.toastMeta.style.display = opts.meta ? "" : "none";
+    els.toastActions.classList.toggle("is-show", !!opts.actions);
+    els.toastBar.style.animationDuration = duration + "ms";
+    restartAnim(els.toastBar, "is-run");
+    void els.toast.offsetWidth;
+    els.toast.classList.add("is-show");
+    state.toastTimer = setTimeout(hideToast, duration);
+  }
+
+  /* ---------------------------------------------------------------------
+     Hiển thị theo trạng thái
+     --------------------------------------------------------------------- */
+  function render() {
+    var s = state.status;
+    var busy = s === "checking" || s === "success";
+    els.input.disabled = busy;
+    els.btnPaste.disabled = busy;
+    els.btnToggle.disabled = busy;
+    els.btnConfirm.disabled = busy || s === "locked";
+    els.btnConfirm.classList.toggle("is-loading", s === "checking");
+    if (s === "checking") { setText(els.confirmLabel, "Đang kiểm tra..."); }
+    else if (s === "locked") { setText(els.confirmLabel, "Thử lại sau " + Math.max(1, Math.ceil((state.lockEnd - Date.now()) / 1000)) + " giây"); }
+    else if (s === "success") { setText(els.confirmLabel, "Đã xác nhận"); }
+    else { setText(els.confirmLabel, "Xác nhận"); }
+  }
+
+  function setUnlocked(on) {
+    state.unlocked = on;
+    els.siteCard.classList.toggle("is-unlocked", on);
+    els.btnEnterMain.classList.toggle("is-show", on);
+    setText(els.statusText, on ? "Đã mở khóa" : "Đang khóa");
+  }
+
+  function shakeField() {
+    els.field.classList.add("is-invalid");
+    restartAnim(els.field, "is-shake");
+  }
+  els.field.addEventListener("animationend", function () { els.field.classList.remove("is-shake"); });
+  els.input.addEventListener("input", function () { els.field.classList.remove("is-invalid"); });
+
+  /* ---------------------------------------------------------------------
+     Khu 1: Lấy key
+     --------------------------------------------------------------------- */
+  // Sao chép chữ vào bộ nhớ tạm; trả về Promise<boolean>
+  function copyText(text) {
+    function legacy() {
+      try {
+        var ta = document.createElement("textarea");
+        ta.value = text;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.top = "-1000px";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        ta.setSelectionRange(0, text.length);
+        var ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+        return ok;
+      } catch (e) { return false; }
+    }
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(text).then(function () { return true; }, function () { return legacy(); });
+      }
+    } catch (e) { /* dùng cách dự phòng */ }
+    return Promise.resolve(legacy());
+  }
+
+  function onGetKey() {
+    if (!isConfigured(CONFIG.KEY_LINK)) {
+      showToast({ variant: "warn", title: "Chưa có link lấy key", desc: "Chủ trang chưa cấu hình link lấy key. Vui lòng liên hệ chủ trang." });
+      return;
+    }
+    var url = parseUrl(CONFIG.KEY_LINK).href;
+    copyText(url).then(function (ok) {
+      if (!ok) {
+        setText(els.fallbackLink, url);
+        els.fallbackLink.classList.add("is-show");
+        showToast({ variant: "warn", title: "Chưa sao chép được", desc: "Hãy chọn và sao chép thủ công đường link vừa hiện dưới nút, rồi dán vào thanh địa chỉ trình duyệt." });
+        return;
+      }
+      els.fallbackLink.classList.remove("is-show");
+      els.btnGetKey.classList.add("btn--done");
+      els.getKeyIcon.firstElementChild.setAttribute("href", "#i-check");
+      setText(els.getKeyLabel, "Đã sao chép link");
+      els.getKeyHint.classList.add("is-show");
+      announce("Đã sao chép link lấy key. Hãy dán vào thanh địa chỉ trình duyệt.");
+      clearTimeout(state.getKeyTimer);
+      state.getKeyTimer = setTimeout(function () {
+        els.btnGetKey.classList.remove("btn--done");
+        els.getKeyIcon.firstElementChild.setAttribute("href", "#i-key");
+        setText(els.getKeyLabel, "Lấy Key");
+      }, 4000);
+    });
+  }
+
+  /* ---------------------------------------------------------------------
+     Khu 2: Nhập & xác nhận
+     --------------------------------------------------------------------- */
+  function toggleVisibility() {
+    var show = els.input.type === "password";
+    els.input.type = show ? "text" : "password";
+    els.btnToggle.setAttribute("aria-pressed", show ? "true" : "false");
+    els.btnToggle.setAttribute("aria-label", show ? "Ẩn key" : "Hiện key");
+    els.toggleUse.setAttribute("href", show ? "#i-eyeoff" : "#i-eye");
+  }
+
+  function pasteFromClipboard() {
+    var manual = function () {
+      showToast({ variant: "info", title: "Chưa dán được tự động", desc: "Hãy dán thủ công bằng Ctrl+V (hoặc giữ ngón tay rồi chọn Dán).", duration: 4500 });
+      els.input.focus();
+    };
+    try {
+      if (!navigator.clipboard || !navigator.clipboard.readText) { manual(); return; }
+      navigator.clipboard.readText().then(function (t) {
+        els.input.value = String(t || "").trim().slice(0, 128);
+        els.field.classList.remove("is-invalid");
+        els.input.focus();
+      }).catch(manual);
+    } catch (e) { manual(); }
+  }
+
+  function startLock() {
+    state.status = "locked";
+    state.lockEnd = Date.now() + LOCK_SECONDS * 1000;
+    clearInterval(state.lockTimer);
+    render();
+    setText(els.lockInfo, "Bạn nhập sai quá nhiều lần. Vui lòng chờ " + LOCK_SECONDS + " giây.");
+    announce("Đã khóa tạm " + LOCK_SECONDS + " giây do nhập sai nhiều lần.");
+    state.lockTimer = setInterval(function () {
+      if (Date.now() >= state.lockEnd) {
+        clearInterval(state.lockTimer);
+        state.lockTimer = null;
+        state.attempts = 0;
+        state.status = "idle";
+        setText(els.lockInfo, "");
+        render();
+        showToast({ variant: "info", title: "Đã mở lại", desc: "Bạn có thể nhập key và thử lại.", duration: 3500 });
+        return;
+      }
+      var left = Math.ceil((state.lockEnd - Date.now()) / 1000);
+      setText(els.lockInfo, "Bạn nhập sai quá nhiều lần. Mở lại sau " + left + " giây.");
+      render();
+    }, 250);
+  }
+
+  function onFail(kind) {
+    state.attempts += 1;
+    var left = MAX_ATTEMPTS - state.attempts;
+    state.status = "idle";
+    shakeField();
+    var expired = kind === "expired";
+    var title = expired ? "Key đã hết hạn" : "Key không hợp lệ";
+    var desc = expired
+      ? "Key này đã hết hạn. Hãy bấm “Lấy key mới” để nhận key khác."
+      : "Key bạn nhập không đúng hoặc đã hết hạn. Hãy kiểm tra lại hoặc bấm “Lấy key mới” để nhận key mới.";
+    if (left <= 0) {
+      render();
+      showToast({ variant: "error", title: title, desc: "Bạn đã nhập sai " + MAX_ATTEMPTS + " lần nên nút xác nhận bị khóa " + LOCK_SECONDS + " giây.", actions: true });
+      startLock();
+      return;
+    }
+    render();
+    showToast({ variant: "error", title: title, desc: desc, meta: "Còn " + left + " lần thử", actions: true });
+    els.input.focus();
+  }
+
+  function onConfirm() {
+    if (state.status !== "idle") { return; }
+    var raw = els.input.value.trim();
+    if (!raw) {
+      shakeField();
+      showToast({ variant: "warn", title: "Chưa nhập key", desc: "Vui lòng nhập key trước khi xác nhận.", duration: 3500 });
+      els.input.focus();
+      return;
+    }
+    if (!state.configOk) {
+      showToast({ variant: "warn", title: "Trang chưa sẵn sàng", desc: "Chủ trang chưa thêm key hợp lệ nào. Vui lòng liên hệ chủ trang." });
+      return;
+    }
+    state.status = "checking";
+    hideToast();
+    render();
+    var delay = 600 + Math.floor(Math.random() * 300);
+    Promise.all([classify(raw), wait(delay)]).then(function (res) {
+      if (state.status !== "checking") { return; }
+      if (res[0] === "valid") { onSuccess(); } else { onFail(res[0]); }
+    }).catch(function () {
+      state.status = "idle";
+      render();
+      showToast({ variant: "warn", title: "Chưa kiểm tra được", desc: "Đã có lỗi khi kiểm tra key. Vui lòng thử lại." });
+    });
+  }
+
+  /* ---------------------------------------------------------------------
+     Thành công + đếm ngược
+     --------------------------------------------------------------------- */
+  function onSuccess() {
+    state.status = "success";
+    state.attempts = 0;
+    render();
+    setUnlocked(true);
+    if (CONFIG.REMEMBER_UNLOCK) { try { localStorage.setItem(REMEMBER_KEY, "1"); } catch (e) { /* bỏ qua */ } }
+    announce("Key chính xác. Đang chuyển đến web chính sau " + COUNTDOWN + " giây.");
+    openModal();
+    startCountdown();
+  }
+
+  function openModal() {
+    state.lastFocus = document.activeElement;
+    setText(els.okDesc, "Chào mừng bạn! Đang chuyển đến web chính sau…");
+    setText(els.countNum, String(COUNTDOWN));
+    els.btnGoNow.disabled = false;
+    els.btnCancel.disabled = false;
+    els.overlay.setAttribute("aria-hidden", "false");
+    els.overlay.classList.add("is-open");
+    launchConfetti();
+    setTimeout(function () { try { els.btnGoNow.focus(); } catch (e) { /* bỏ qua */ } }, 60);
+  }
+
+  function closeModal() {
+    els.overlay.classList.remove("is-open");
+    els.overlay.setAttribute("aria-hidden", "true");
+    els.countRing.classList.remove("is-run");
+    els.confetti.textContent = "";
+    var back = state.lastFocus;
+    state.lastFocus = null;
+    if (back && typeof back.focus === "function" && document.contains(back) && !back.disabled) {
+      try { back.focus(); } catch (e) { /* bỏ qua */ }
+    }
+  }
+
+  function stopCountdown() {
+    if (state.countTimer !== null) { clearInterval(state.countTimer); state.countTimer = null; }
+  }
+
+  function startCountdown() {
+    if (state.countTimer !== null) { return; } // chống hai bộ đếm cùng lúc
+    state.countEnd = performance.now() + COUNTDOWN * 1000;
+    state.countShown = COUNTDOWN;
+    els.countRing.style.animationDuration = COUNTDOWN + "s";
+    restartAnim(els.countRing, "is-run");
+    state.countTimer = setInterval(tickCountdown, 100);
+  }
+
+  function tickCountdown() {
+    var left = state.countEnd - performance.now();
+    if (left <= 0) { proceed(); return; }
+    var shown = Math.max(1, Math.ceil(left / 1000));
+    if (shown !== state.countShown) {
+      state.countShown = shown;
+      setText(els.countNum, String(shown));
+      restartAnim(els.countNum, "is-pop");
+    }
+  }
+
+  function cancelCountdown() {
+    if (state.status !== "success" || state.redirected) { return; }
+    stopCountdown();
+    closeModal();
+    state.status = "idle";
+    render();
+    announce("Đã hủy đếm ngược. Bạn có thể bấm Vào web chính bất cứ lúc nào.");
+  }
+
+  function goMain() {
+    if (state.redirected) { return true; }
+    if (!isConfigured(CONFIG.MAIN_SITE_URL)) {
+      showToast({ variant: "warn", title: "Chưa có web chính", desc: "Chủ trang chưa cấu hình web chính. Vui lòng liên hệ chủ trang." });
+      return false;
+    }
+    state.redirected = true;
+    var url = parseUrl(CONFIG.MAIN_SITE_URL).href;
+    try { window.location.assign(url); } catch (e) { window.location.href = url; }
+    return true;
+  }
+
+  function proceed() {
+    stopCountdown();
+    if (state.redirected) { return; }
+    els.btnGoNow.disabled = true;
+    els.btnCancel.disabled = true;
+    setText(els.okDesc, "Đang chuyển đến web chính…");
+    if (!goMain()) {
+      closeModal();
+      state.status = "idle";
+      render();
+    }
+  }
+
+  function onEnterMain() {
+    if (state.status === "success") { return; }
+    goMain();
+  }
+
+  /* ---------------------------------------------------------------------
+     Pháo giấy
+     --------------------------------------------------------------------- */
+  function launchConfetti() {
+    els.confetti.textContent = "";
+    if (reduceMotion) { return; }
+    var colors = ["#34d399", "#14d8c0", "#3b82f6", "#8b5cf6", "#fbbf24", "#ff6b81"];
+    var frag = document.createDocumentFragment();
+    for (var i = 0; i < 42; i++) {
+      var p = document.createElement("i");
+      p.style.setProperty("--x", (Math.random() * 100).toFixed(1) + "%");
+      p.style.setProperty("--c", colors[i % colors.length]);
+      p.style.setProperty("--d", (1.6 + Math.random() * 1.4).toFixed(2) + "s");
+      p.style.setProperty("--delay", (Math.random() * 0.5).toFixed(2) + "s");
+      p.style.setProperty("--r", Math.floor(180 + Math.random() * 540) + "deg");
+      frag.appendChild(p);
+    }
+    els.confetti.appendChild(frag);
+  }
+
+  /* ---------------------------------------------------------------------
+     Bàn phím: Enter, Esc, bẫy tiêu điểm
+     --------------------------------------------------------------------- */
+  els.input.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") { e.preventDefault(); onConfirm(); }
+  });
+
+  document.addEventListener("keydown", function (e) {
+    var modalOpen = els.overlay.classList.contains("is-open");
+    if (e.key === "Escape") {
+      if (modalOpen) { cancelCountdown(); }
+      else if (els.toast.classList.contains("is-show")) { hideToast(); }
+      return;
+    }
+    if (e.key === "Tab" && modalOpen) {
+      var items = [els.btnGoNow, els.btnCancel].filter(function (b) { return !b.disabled; });
+      if (!items.length) { e.preventDefault(); els.modal.focus(); return; }
+      var first = items[0], last = items[items.length - 1], active = document.activeElement;
+      if (e.shiftKey && (active === first || !els.modal.contains(active))) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && (active === last || !els.modal.contains(active))) { e.preventDefault(); first.focus(); }
+    }
+  });
+
+  /* ---------------------------------------------------------------------
+     Gắn sự kiện
+     --------------------------------------------------------------------- */
+  els.btnGetKey.addEventListener("click", onGetKey);
+  els.btnToggle.addEventListener("click", toggleVisibility);
+  els.btnPaste.addEventListener("click", pasteFromClipboard);
+  els.btnConfirm.addEventListener("click", onConfirm);
+  els.btnGoNow.addEventListener("click", proceed);
+  els.btnCancel.addEventListener("click", cancelCountdown);
+  els.btnEnterMain.addEventListener("click", onEnterMain);
+  els.toastClose.addEventListener("click", hideToast);
+  els.toastRetry.addEventListener("click", function () {
+    hideToast();
+    if (state.status === "locked") { return; }
+    els.input.focus();
+    els.input.select();
+  });
+  els.toastNewKey.addEventListener("click", function () {
+    hideToast();
+    try { els.btnGetKey.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" }); } catch (e) { /* bỏ qua */ }
+    els.btnGetKey.focus({ preventScroll: true });
+  });
+
+  // Quay lại bằng nút Back (bfcache): đưa trang về trạng thái ban đầu
+  window.addEventListener("pageshow", function (e) {
+    if (e.persisted && state.redirected) {
+      state.redirected = false;
+      stopCountdown();
+      closeModal();
+      state.status = "idle";
+      render();
+    }
+  });
+
+  /* ---------------------------------------------------------------------
+     Công cụ tạo mã băm
+     --------------------------------------------------------------------- */
+  function initHashTool() {
+    if (window.location.hash !== "#tao-ma-bam") { return; }
+    els.hashTool.classList.add("is-show");
+    function run() {
+      var v = els.hashIn.value;
+      if (!v.trim()) { setText(els.hashOut, "Hãy nhập key trước."); return; }
+      sha256Hex(normalize(v)).then(function (h) { setText(els.hashOut, h); });
+    }
+    els.hashBtn.addEventListener("click", run);
+    els.hashIn.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); run(); } });
+  }
+
+  /* ---------------------------------------------------------------------
+     Nền: hạt sáng + ánh sáng theo chuột
+     --------------------------------------------------------------------- */
+  function initFx() {
+    if (reduceMotion || !els.fx || !els.fx.getContext) { return; }
+    var ctx = els.fx.getContext("2d");
+    if (!ctx) { return; }
+    var parts = [], w = 0, h = 0, dpr = 1, running = false, rafId = 0;
+
+    function resize() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      w = window.innerWidth; h = window.innerHeight;
+      els.fx.width = Math.floor(w * dpr); els.fx.height = Math.floor(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      var count = Math.max(18, Math.min(60, Math.floor(w / 26)));
+      parts = [];
+      for (var i = 0; i < count; i++) { parts.push(spawn(true)); }
+    }
+    function spawn(anywhere) {
+      return { x: Math.random() * w, y: anywhere ? Math.random() * h : h + 10, r: 0.8 + Math.random() * 1.8,
+               v: 0.15 + Math.random() * 0.45, a: 0.15 + Math.random() * 0.5, p: Math.random() * 6.28 };
+    }
+    function frame() {
+      if (!running) { return; }
+      ctx.clearRect(0, 0, w, h);
+      for (var i = 0; i < parts.length; i++) {
+        var q = parts[i];
+        q.y -= q.v; q.p += 0.01; q.x += Math.sin(q.p) * 0.25;
+        if (q.y < -10) { parts[i] = spawn(false); continue; }
+        ctx.beginPath();
+        ctx.fillStyle = "rgba(170, 190, 255," + q.a + ")";
+        ctx.arc(q.x, q.y, q.r, 0, 6.2832);
+        ctx.fill();
+      }
+      rafId = requestAnimationFrame(frame);
+    }
+    function start() { if (!running) { running = true; rafId = requestAnimationFrame(frame); } }
+    function stop() { running = false; cancelAnimationFrame(rafId); }
+
+    var rt = 0;
+    window.addEventListener("resize", function () { clearTimeout(rt); rt = setTimeout(resize, 150); });
+    document.addEventListener("visibilitychange", function () { if (document.hidden) { stop(); } else { start(); } });
+    resize();
+    start();
+  }
+
+  function initGlow() {
+    if (reduceMotion || !els.glow) { return; }
+    var fine = false;
+    try { fine = window.matchMedia("(pointer: fine)").matches; } catch (e) { fine = false; }
+    if (!fine) { return; }
+    var tx = 0, ty = 0, cx = 0, cy = 0, raf = 0;
+    function loop() {
+      cx += (tx - cx) * 0.12; cy += (ty - cy) * 0.12;
+      els.glow.style.transform = "translate3d(" + cx.toFixed(1) + "px," + cy.toFixed(1) + "px,0)";
+      if (Math.abs(tx - cx) > 0.5 || Math.abs(ty - cy) > 0.5) { raf = requestAnimationFrame(loop); } else { raf = 0; }
+    }
+    window.addEventListener("pointermove", function (e) {
+      tx = e.clientX; ty = e.clientY;
+      els.glow.classList.add("is-on");
+      if (!raf) { raf = requestAnimationFrame(loop); }
+    }, { passive: true });
+    document.addEventListener("mouseleave", function () { els.glow.classList.remove("is-on"); });
+  }
+
+  /* ---------------------------------------------------------------------
+     Khởi tạo
+     --------------------------------------------------------------------- */
+  function init() {
+    setText(els.title, CONFIG.SITE_TITLE || "Cổng Xác Thực Key");
+    setText(els.subtitle, CONFIG.SITE_SUBTITLE || "");
+    document.title = CONFIG.SITE_TITLE || "Cổng Xác Thực Key";
+    setText(els.siteName, CONFIG.MAIN_SITE_NAME || "Web chính");
+    setText(els.siteDesc, CONFIG.MAIN_SITE_DESC || "");
+
+    state.configOk = buildSets();
+    if (!state.configOk) {
+      setText(els.configWarn, "⚠️ Dành cho chủ trang: danh sách VALID_KEYS đang trống. Hãy thêm ít nhất một key trong khối CONFIG ở đầu phần <script>.");
+      els.configWarn.classList.add("is-show");
+    }
+
+    if (CONFIG.REMEMBER_UNLOCK) {
+      try { if (localStorage.getItem(REMEMBER_KEY) === "1") { setUnlocked(true); } } catch (e) { /* bỏ qua */ }
+    }
+
+    render();
+    initHashTool();
+    initFx();
+    initGlow();
+  }
+
+  if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", init); } else { init(); }
+})();
+</script>
+</body>
+</html>
